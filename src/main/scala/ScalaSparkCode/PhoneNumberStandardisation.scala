@@ -66,7 +66,7 @@ object PhoneNumberStandardisation {
         .when(col("credit_Card_num").rlike("^4709"), lit("Rupay"))
         .otherwise(lit("Old card")))
 
-    crd_info.show(10)
+    crd_info.printSchema()
     println("the total number of different cards issued to customer would be\n")
     crd_info.select("Card_Name").groupBy("Card_Name").count().show(10)
 
