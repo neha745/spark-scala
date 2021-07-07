@@ -10,54 +10,53 @@ import org.apache.spark.sql.Row
 import java.lang.String._
 
 
-object accumBroadcast extends App {
+object accumBroadcast {
 
-  Logger.getLogger("org").setLevel(Level.ERROR)
-  // now using accumulator variable to count the number of asset owned by every customer excluding null values in asset
-  val spark = SparkSession.builder()
-    .appName("accum")
-    .master("local")
-    .getOrCreate()
-
-  import spark.implicits._
- // case class custcase(id: Int, name: String, pin : Int, asset: Seq[String] )
+  def main(args: Array[String]): Unit = {
 
 
+    Logger.getLogger("org").setLevel(Level.ERROR)
+    // now using accumulator variable to count the number of asset owned by every customer excluding null values in asset
+    val spark = SparkSession.builder()
+      .appName("accum")
+      .master("local")
+      .getOrCreate()
+
+    import spark.implicits._
 
 
+    def convertArray(str: String) = {
 
+      val arr: List[String] = (str.split(",")).toList
+      arr
+    }
 
+    val convAnony: String => Seq[String] = (asst: String) => {
+      convertArray(asst)
+    }
+    val convUDF = udf(convAnony)
 
-  def convertArray(str :String)={
-
-    val arr:List[String] = (str.split(",")).toList
-    arr
-  }
-  val convAnony: String => Seq[String] = (asst: String) => {
-    convertArray(asst)
-  }
-  val convUDF = udf(convAnony)
-
-  val customer = spark.read
-    .option("header", "true")
-    .option("sep","|")
-    .option("inferSchema", "true")
-    .csv("/Users/himanshubhardwaj/customer.csv")
+    val customer = spark.read
+      .option("header", "true")
+      .option("sep", "|")
+      .option("inferSchema", "true")
+      .csv("/Users/himanshubhardwaj/customer.csv")
 
     println(customer.rdd.partitions.length)
 
-    val x = customer.withColumn("asset", explode(split(col("asset"),",")))
-    .filter(col("asset") =!= "null")
-      .select("id","asset").groupBy("id").agg((collect_list("asset"))
-    .alias("assets"))
+    val x = customer.withColumn("asset", explode(split(col("asset"), ",")))
+      .filter(col("asset") =!= "null")
+      .select("id", "asset").groupBy("id").agg((collect_list("asset"))
+      .alias("assets"))
     //  .withColumn("totalasset" , agg(collect_list("asset")))
 
-  println(x.rdd.partitions.length)
-
-x.write.parquet("/Users/himanshubhardwaj/output/")
+    println(x.rdd.partitions.length)
 
 
-/*
+   x.write.mode("append").saveAsTable("customer")
+
+
+    /*
   def assetCount(asset: Array[String]): Int = {
     val arr = asset.toSeq
     var c = 0
@@ -80,5 +79,6 @@ x.write.parquet("/Users/himanshubhardwaj/output/")
   customer.withColumn("asset_count", assetCountUDF(col("asset"))).show(10)
 
 */
-  spark.stop()
+    spark.stop()
+  }
 }
