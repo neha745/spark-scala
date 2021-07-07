@@ -53,7 +53,7 @@ object accumBroadcast {
     println(x.rdd.partitions.length)
 
 
-   x.write.mode("append").saveAsTable("customer")
+   x.write.parquet("/Users/himanshubhardwaj/new.parquet")
 
 
     /*
