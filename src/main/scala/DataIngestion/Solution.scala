@@ -32,9 +32,9 @@ object Solution {
 
       arr2
     }
-
     val y = x(arr,3)
-    y.foreach(println)
+
+
 
   }
 }

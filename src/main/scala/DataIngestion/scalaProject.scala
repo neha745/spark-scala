@@ -1,6 +1,7 @@
 package DataIngestion
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.{collect_list,col}
 
 object scalaProject {
 
@@ -18,7 +19,7 @@ object scalaProject {
       .option("header" , "true")
       .load("hdfs:///user/hadoop/data/*.csv")
 
-    val results = df.groupBy("VendorID").count()
+    val results = df.groupBy("VendorID").agg(collect_list(col("Vendor_name")))
 
     results.write.partitionBy("VendorID").parquet("/user/hadoop/output/")
 
